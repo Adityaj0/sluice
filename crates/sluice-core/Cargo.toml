@@ -1,0 +1,12 @@
+[package]
+name = "sluice-core"
+description = "Event envelope, operator trait and stateless operators for Sluice"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+serde.workspace = true
+bincode.workspace = true
+thiserror.workspace = true

@@ -1,0 +1,7 @@
+{
+  "name": "big-spenders-per-minute",
+  "source": { "type": "grpc", "stream": "purchases", "max_out_of_orderness_ms": 2000 },
+  "query": "SELECT user_id, COUNT(*) AS tx_count, SUM(amount) AS total, WINDOW_START AS minute FROM purchases WHERE amount > 0 AND 1 = 1 WINDOW TUMBLING (SIZE 1 MINUTE) GROUP BY user_id HAVING COUNT(*) > 10 AND user_id != 'user-000'",
+  "sink": { "type": "buffer", "capacity": 5000 },
+  "checkpointing": { "interval_ms": 1000, "backend": "rocksdb" }
+}

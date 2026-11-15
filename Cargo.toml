@@ -1,0 +1,90 @@
+[workspace]
+resolver = "2"
+members = ["crates/*", "api"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+license = "MIT OR Apache-2.0"
+
+[workspace.dependencies]
+sluice-core = { path = "crates/sluice-core" }
+sluice-runtime = { path = "crates/sluice-runtime" }
+sluice-ingest = { path = "crates/sluice-ingest" }
+sluice-state = { path = "crates/sluice-state" }
+sluice-checkpoint = { path = "crates/sluice-checkpoint" }
+sluice-sql = { path = "crates/sluice-sql" }
+sluice-api = { path = "api" }
+
+tokio = { version = "1", features = ["full"] }
+tokio-stream = { version = "0.1", features = ["net"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+bincode = "1.3"
+thiserror = "2"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tonic = "0.12"
+prost = "0.13"
+tonic-build = "0.12"
+axum = { version = "0.7", features = ["ws"] }
+tower = { version = "0.5", features = ["util"] }
+tower-http = { version = "0.6", features = ["cors", "fs"] }
+http-body-util = "0.1"
+pest = "2.7"
+pest_derive = "2.7"
+
+[package]
+name = "sluice"
+description = "Sluice stream processing engine (gRPC ingestion + REST job API)"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "sluice"
+path = "src/main.rs"
+
+[[bin]]
+name = "sluice-loadgen"
+path = "src/bin/loadgen.rs"
+
+[dependencies]
+sluice-api.workspace = true
+sluice-ingest.workspace = true
+tokio.workspace = true
+tokio-stream.workspace = true
+tonic.workspace = true
+serde_json.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+
+[dev-dependencies]
+criterion = { version = "0.8", default-features = false, features = ["cargo_bench_support"] }
+sluice-core.workspace = true
+sluice-runtime.workspace = true
+sluice-state.workspace = true
+sluice-sql.workspace = true
+tempfile = "3"
+
+[[bench]]
+name = "throughput"
+harness = false
+
+[[bench]]
+name = "checkpoint"
+harness = false
+
+[[bench]]
+name = "recovery"
+harness = false
+
+# Keep debug builds small: full debug info for RocksDB and friends runs to
+# several gigabytes.
+[profile.dev]
+debug = "line-tables-only"
+
+[profile.dev.package."*"]
+debug = false

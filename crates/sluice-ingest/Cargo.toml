@@ -1,0 +1,20 @@
+[package]
+name = "sluice-ingest"
+description = "gRPC event ingestion server and stream router for Sluice"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+sluice-core.workspace = true
+sluice-runtime.workspace = true
+tokio.workspace = true
+tokio-stream.workspace = true
+tonic.workspace = true
+prost.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+
+[build-dependencies]
+tonic-build.workspace = true

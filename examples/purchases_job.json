@@ -1,0 +1,16 @@
+{
+  "name": "spend-per-user-per-minute",
+  "source": { "type": "grpc", "stream": "purchases", "max_out_of_orderness_ms": 2000 },
+  "operators": [
+    { "type": "filter", "field": "amount", "op": "gt", "value": 0 },
+    { "type": "key_by", "field": "user_id" },
+    {
+      "type": "window",
+      "window": { "kind": "tumbling", "size_ms": 60000 },
+      "aggregate": { "fn": "sum", "field": "amount" }
+    }
+  ],
+  "sink": { "type": "buffer", "capacity": 5000 },
+  "checkpointing": { "interval_ms": 500, "backend": "rocksdb", "retained": 3 },
+  "restart": { "max_restarts": 3, "delay_ms": 200 }
+}

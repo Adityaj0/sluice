@@ -1,0 +1,19 @@
+[package]
+name = "sluice-state"
+description = "Keyed state backends (in-memory and RocksDB) with incremental snapshots for Sluice"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+sluice-core.workspace = true
+rocksdb = { version = "0.25", default-features = false, features = ["bindgen-runtime", "lz4"] }
+serde.workspace = true
+serde_json.workspace = true
+bincode.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+
+[dev-dependencies]
+tempfile = "3"

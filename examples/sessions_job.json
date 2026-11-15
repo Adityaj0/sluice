@@ -1,0 +1,16 @@
+{
+  "name": "spend-per-user-session",
+  "source": { "type": "grpc", "stream": "purchases", "max_out_of_orderness_ms": 2000, "idle_timeout_ms": 5000 },
+  "operators": [
+    { "type": "key_by", "field": "user_id" },
+    {
+      "type": "window",
+      "window": { "kind": "session", "gap_ms": 3000 },
+      "aggregate": { "fn": "sum", "field": "amount" },
+      "allowed_lateness_ms": 5000,
+      "late_events": "emit"
+    }
+  ],
+  "sink": { "type": "buffer", "capacity": 10000 },
+  "checkpointing": { "interval_ms": 1000, "backend": "rocksdb" }
+}

@@ -1,0 +1,81 @@
+// Sluice streaming SQL.
+//
+//   SELECT user_id, COUNT(*) AS tx_count, SUM(amount) AS total
+//   FROM transactions
+//   WHERE amount > 0
+//   WINDOW TUMBLING (SIZE 5 MINUTES)
+//   GROUP BY user_id
+//   HAVING COUNT(*) > 10
+
+WHITESPACE = _{ " " | "\t" | "\r" | "\n" }
+COMMENT    = _{ "--" ~ (!"\n" ~ ANY)* }
+
+query = { SOI ~ select_clause ~ from_clause ~ where_clause? ~ window_clause? ~ group_by_clause? ~ having_clause? ~ ";"? ~ EOI }
+
+select_clause   = { ^"SELECT" ~ select_item ~ ("," ~ select_item)* }
+select_item     = { star | expr ~ alias? }
+alias           = { ^"AS" ~ identifier | identifier }
+star            = { "*" }
+from_clause     = { ^"FROM" ~ identifier }
+where_clause    = { ^"WHERE" ~ expr }
+group_by_clause = { ^"GROUP" ~ ^"BY" ~ expr ~ ("," ~ expr)* }
+having_clause   = { ^"HAVING" ~ expr }
+
+window_clause = { ^"WINDOW" ~ (tumbling | sliding | session) ~ lateness? }
+tumbling      = { ^"TUMBLING" ~ "(" ~ ^"SIZE" ~ duration ~ ")" }
+sliding       = { ^"SLIDING" ~ "(" ~ ^"SIZE" ~ duration ~ "," ~ ^"SLIDE" ~ duration ~ ")" }
+session       = { ^"SESSION" ~ "(" ~ ^"GAP" ~ duration ~ ")" }
+lateness      = { ^"ALLOWED" ~ ^"LATENESS" ~ duration }
+duration      = { number ~ time_unit }
+time_unit     = @{
+    (^"MILLISECONDS" | ^"MILLISECOND" | ^"MS" | ^"SECONDS" | ^"SECOND" | ^"MINUTES" | ^"MINUTE"
+    | ^"HOURS" | ^"HOUR" | ^"DAYS" | ^"DAY" | ^"S") ~ !ident_char
+}
+
+// Expressions: operands separated by operators; precedence is resolved
+// with a Pratt parser.
+expr    = { prefix* ~ primary ~ postfix* ~ (infix ~ prefix* ~ primary ~ postfix*)* }
+infix   = _{ or | and | neq | lte | gte | eq | lt | gt | add | sub | mul | div | modulo }
+or      = @{ ^"OR" ~ !ident_char }
+and     = @{ ^"AND" ~ !ident_char }
+eq      = { "=" }
+neq     = { "!=" | "<>" }
+lte     = { "<=" }
+gte     = { ">=" }
+lt      = { "<" }
+gt      = { ">" }
+add     = { "+" }
+sub     = { "-" }
+mul     = { "*" }
+div     = { "/" }
+modulo  = { "%" }
+prefix  = _{ not | neg }
+not     = @{ ^"NOT" ~ !ident_char }
+neg     = { "-" }
+postfix = _{ is_not_null | is_null }
+is_null     = { ^"IS" ~ ^"NULL" }
+is_not_null = { ^"IS" ~ ^"NOT" ~ ^"NULL" }
+
+primary       = _{ literal | function_call | window_bound | column | "(" ~ expr ~ ")" }
+function_call = { identifier ~ "(" ~ (count_star | expr ~ ("," ~ expr)*)? ~ ")" }
+count_star    = { "*" }
+window_bound  = @{ (^"WINDOW_START" | ^"WINDOW_END") ~ !ident_char }
+column        = { identifier ~ ("." ~ (identifier | path_index))* }
+path_index    = @{ ASCII_DIGIT+ }
+
+literal = _{ number | string | boolean | null }
+number  = @{ ASCII_DIGIT+ ~ ("." ~ ASCII_DIGIT+)? }
+string  = ${ "'" ~ string_inner ~ "'" }
+string_inner = @{ ("''" | !"'" ~ ANY)* }
+boolean = @{ (^"TRUE" | ^"FALSE") ~ !ident_char }
+null    = @{ ^"NULL" ~ !ident_char }
+
+identifier  = ${ quoted_name | bare_name }
+quoted_name = @{ "\"" ~ (!"\"" ~ ANY)+ ~ "\"" }
+bare_name   = @{ !keyword ~ (ASCII_ALPHA | "_") ~ ident_char* }
+ident_char  = _{ ASCII_ALPHANUMERIC | "_" }
+keyword = @{
+    (^"SELECT" | ^"FROM" | ^"WHERE" | ^"WINDOW_START" | ^"WINDOW_END" | ^"WINDOW" | ^"GROUP" | ^"BY"
+    | ^"HAVING" | ^"AS" | ^"AND" | ^"OR" | ^"NOT" | ^"IS" | ^"NULL" | ^"TRUE" | ^"FALSE"
+    | ^"ALLOWED" | ^"LATENESS") ~ !ident_char
+}

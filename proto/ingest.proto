@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+package sluice.ingest.v1;
+
+// Event ingestion into Sluice. Every running job whose source names a
+// stream receives a copy of each event sent to that stream.
+service Ingest {
+  rpc IngestEvent(EventRequest) returns (IngestResponse);
+
+  // High-throughput ingestion: send batches over one bidirectional stream;
+  // each batch is acknowledged once it is in the stream's log. The server
+  // reads the next batch only after storing the current one, so when a log
+  // is full (jobs are behind) the stream pauses and HTTP/2 flow control
+  // pushes back on the producer.
+  rpc IngestStream(stream EventBatch) returns (stream BatchAck);
+}
+
+message Event {
+  bytes key = 1;
+  bytes value = 2;
+  // Event time in ms since the Unix epoch. 0 means "now".
+  uint64 event_time = 3;
+}
+
+message EventBatch {
+  string stream = 1;
+  repeated Event events = 2;
+}
+
+message BatchAck {
+  // Offsets of the batch's first and last events (equal to the stream's
+  // next offset, with count 0, for an empty batch).
+  uint64 first_offset = 1;
+  uint64 last_offset = 2;
+  uint32 count = 3;
+}
+
+message EventRequest {
+  // Logical stream (topic) name; jobs subscribe to streams by name.
+  string stream = 1;
+  // Optional partitioning key. Empty means un-keyed.
+  bytes key = 2;
+  // Opaque payload. Jobs submitted through the REST API expect UTF-8 JSON.
+  bytes value = 3;
+  // Event time in ms since the Unix epoch. 0 means "now" (ingestion time).
+  uint64 event_time = 4;
+}
+
+message IngestResponse {
+  // Position of the event within its stream, starting at 0.
+  uint64 offset = 1;
+}

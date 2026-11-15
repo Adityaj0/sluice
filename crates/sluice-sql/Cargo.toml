@@ -1,0 +1,20 @@
+[package]
+name = "sluice-sql"
+description = "Streaming SQL compiler for Sluice: parser, logical plan, optimizer, physical plan"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+sluice-core.workspace = true
+sluice-runtime.workspace = true
+pest.workspace = true
+pest_derive.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+tokio.workspace = true
+tempfile = "3"

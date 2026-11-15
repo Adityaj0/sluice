@@ -1,0 +1,27 @@
+[package]
+name = "sluice-api"
+description = "REST API for submitting and monitoring Sluice jobs"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+sluice-core.workspace = true
+sluice-runtime.workspace = true
+sluice-ingest.workspace = true
+sluice-sql.workspace = true
+sluice-state.workspace = true
+sluice-checkpoint.workspace = true
+axum.workspace = true
+tokio.workspace = true
+tower-http.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+
+[dev-dependencies]
+tower.workspace = true
+http-body-util.workspace = true
+tempfile = "3"

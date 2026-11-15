@@ -1,0 +1,46 @@
+# One-command demo: `docker compose up --build`, then open http://localhost:8080
+#
+#   engine     Sluice: gRPC ingest (:50051), REST API + web UI (:8080)
+#   generator  deploys three example jobs (operators, SQL, sessions) and
+#              streams ~2,000 synthetic purchases per second into them
+
+services:
+  engine:
+    build: .
+    image: sluice:latest
+    ports:
+      - "8080:8080"
+      - "50051:50051"
+    volumes:
+      - sluice-data:/data
+
+  generator:
+    image: sluice:latest
+    pull_policy: never
+    depends_on:
+      - engine
+    restart: on-failure
+    command:
+      - sluice-loadgen
+      - --api
+      - engine:8080
+      - --grpc
+      - http://engine:50051
+      - --submit
+      - /opt/sluice/examples/purchases_job.json
+      - --submit
+      - /opt/sluice/examples/sql_job.json
+      - --submit
+      - /opt/sluice/examples/sessions_job.json
+      - --events
+      - "0"
+      - --rate
+      - "2000"
+      - --connections
+      - "1"
+      - --users
+      - "40"
+      - --quiet
+
+volumes:
+  sluice-data:

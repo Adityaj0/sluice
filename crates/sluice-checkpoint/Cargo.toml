@@ -1,0 +1,18 @@
+[package]
+name = "sluice-checkpoint"
+description = "Checkpoint coordinator, manifests and recovery for Sluice"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+sluice-core.workspace = true
+sluice-state.workspace = true
+tokio.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tracing.workspace = true
+
+[dev-dependencies]
+tempfile = "3"

@@ -1,0 +1,20 @@
+[package]
+name = "sluice-runtime"
+description = "Tokio-based pipeline execution, watermarks, windowing and checkpointed recovery for Sluice"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+sluice-core.workspace = true
+sluice-state.workspace = true
+sluice-checkpoint.workspace = true
+tokio.workspace = true
+serde.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+
+[dev-dependencies]
+tempfile = "3"
+serde.workspace = true
